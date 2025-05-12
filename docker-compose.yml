@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    volumes:
+      - ./prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - node-exporter
+      - gpu-exporter
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    ports:
+      - "9100:9100"
+
+  gpu-exporter:
+    image: python:3.11-slim
+    volumes:
+      - ./gpu_fake_exporter.py:/app/gpu_fake_exporter.py:ro
+    working_dir: /app
+    command: ["python", "gpu_fake_exporter.py"]
+    ports:
+      - "8000:8000"
